@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>23699781+Paulbouchara@users.noreply.github.com</email>
+		<name>Paul Bouchara</name>
+	</maintainer>
+	<longdescription lang="en">
+		prowl-agent is a local, CLI-first code index for AI agents: it parses a
+		tree with Tree-sitter into an SQLite (FTS5 + vector) store and answers
+		queries with small, cited excerpts instead of whole files, over the
+		command line or as an MCP server. Ryoku Rashin uses it to build the
+		vault's code map ("ryoku-rashin index") and to install its agent skills
+		("ryoku-rashin wire"); this package follows the commit Ryoku pins.
+	</longdescription>
+	<upstream>
+		<remote-id type="github">neur0map/prowl</remote-id>
+		<bugs-to>https://github.com/neur0map/prowl/issues</bugs-to>
+	</upstream>
+</pkgmetadata>
