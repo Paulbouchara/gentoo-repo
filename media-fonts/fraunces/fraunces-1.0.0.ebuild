@@ -6,10 +6,11 @@ EAPI=8
 inherit font
 
 DESCRIPTION="Fraunces: A vintage-inspired variable serif typeface with display axes"
-HOMEPAGE="https://fraunces.undercasetype.com/ https://github.com/undercasetype/Fraunces"
-SRC_URI="https://github.com/undercasetype/Fraunces/archive/refs/tags/1.000.tar.gz -> ${P}.tar.gz"
-
-S="${WORKDIR}/Fraunces-1.000"
+HOMEPAGE="https://github.com/undercasetype/Fraunces"
+# upstream tags font versions as M.mmm: 1.000 = 1.0.0, 1.001 = 1.0.1
+MY_PV="$(ver_cut 1).$(ver_cut 2)0$(ver_cut 3)"
+SRC_URI="https://github.com/undercasetype/Fraunces/archive/refs/tags/${MY_PV}.tar.gz -> ${P}.tar.gz"
+S="${WORKDIR}/Fraunces-${MY_PV}"
 
 LICENSE="OFL-1.1"
 SLOT="0"
@@ -30,4 +31,3 @@ src_unpack() {
 src_compile() {
 	:
 }
-

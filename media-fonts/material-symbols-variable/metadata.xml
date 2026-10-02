@@ -2,8 +2,8 @@
 <!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
 	<maintainer type="person">
-		<email>paul@local</email>
-		<name>Paul</name>
+		<email>23699781+Paulbouchara@users.noreply.github.com</email>
+		<name>Paul Bouchara</name>
 	</maintainer>
 	<upstream>
 		<remote-id type="github">google/material-design-icons</remote-id>

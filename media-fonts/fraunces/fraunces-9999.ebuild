@@ -6,7 +6,7 @@ EAPI=8
 inherit font git-r3
 
 DESCRIPTION="Fraunces: A vintage-inspired variable serif typeface with display axes"
-HOMEPAGE="https://fraunces.undercasetype.com/ https://github.com/undercasetype/Fraunces"
+HOMEPAGE="https://github.com/undercasetype/Fraunces"
 EGIT_REPO_URI="https://github.com/undercasetype/Fraunces.git"
 
 LICENSE="OFL-1.1"
@@ -27,4 +27,3 @@ src_unpack() {
 src_compile() {
 	:
 }
-
