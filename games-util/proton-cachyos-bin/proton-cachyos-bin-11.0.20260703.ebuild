@@ -23,7 +23,7 @@ SRC_URI="
 LICENSE="BSD BSD-2 GPL-2 GPL-3 LGPL-2.1+ MIT MPL-2.0"
 SLOT="${PV}"
 KEYWORDS="~amd64"
-IUSE="+cpu_flags_x86_avx2"
+IUSE="cpu_flags_x86_avx2"
 
 RESTRICT="binchecks strip test"
 QA_PREBUILT="usr/share/steam/compatibilitytools.d/*"
@@ -43,19 +43,20 @@ src_unpack() {
 
 src_install() {
 	local dest="/usr/share/steam/compatibilitytools.d/Proton-CachyOS-${MY_PV}"
-	insinto "${dest}"
-	doins -r "${S}"/.
+	dodir "${dest%/*}"
 
-	# Set executable permissions
-	fperms 0755 "${dest}/proton"
-	if [[ -d "${ED}/${dest}/files/bin" ]]; then
-		fperms -R 0755 "${dest}/files/bin"
-	fi
+	# mv rather than doins to keep the modes of the prebuilt tree
+	# (wine loaders, preloaders and protonfixes helpers must stay executable)
+	mv "${S}" "${ED}${dest}" || die
+	fowners -R root:root "${dest}"
 }
 
 pkg_postinst() {
+	local variant="x86_64"
+	use cpu_flags_x86_avx2 && variant="x86_64_v3"
+
 	elog "Proton-CachyOS has been installed into /usr/share/steam/compatibilitytools.d/"
-	elog "Restart Steam to see 'Proton-CachyOS-${MY_PV}' in Steam Play compatibility tools."
+	elog "Restart Steam to see 'proton-cachyos-${MY_PV}-slr-${variant}' in Steam Play compatibility tools."
 	elog ""
 	elog "To run games with native Wayland driver (bypassing XWayland):"
 	elog "  PROTON_ENABLE_WAYLAND=1 %command%"
