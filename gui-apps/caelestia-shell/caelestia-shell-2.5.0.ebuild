@@ -39,7 +39,11 @@ COMMON_DEPEND="
 	sci-libs/libqalculate:=
 	sys-apps/lm-sensors:=
 "
+# guru's libcava (the LukashonakV fork that builds the library) also installs
+# /usr/bin/cava and declares no blocker, so it collides with ::gentoo cava.
+# The soft blocker lets Portage swap them; libcava ships the same cava CLI.
 RDEPEND="${COMMON_DEPEND}
+	!media-sound/cava
 	app-misc/brightnessctl
 	app-misc/ddcutil
 	app-shells/fish
