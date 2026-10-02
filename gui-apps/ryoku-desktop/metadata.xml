@@ -2,8 +2,8 @@
 <!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
 <pkgmetadata>
 	<maintainer type="person">
-		<email>paul@localhost</email>
-		<name>Paul</name>
+		<email>23699781+Paulbouchara@users.noreply.github.com</email>
+		<name>Paul Bouchara</name>
 	</maintainer>
 	<longdescription lang="en">
 		Ryoku Desktop is the Gentoo packaging of the "ryoku" rice by neur0map: a
@@ -101,7 +101,7 @@
 		</flag>
 	</use>
 	<upstream>
-		<remote-id type="github">neur0map/ryoku-arch</remote-id>
-		<bugs-to>https://github.com/neur0map/ryoku-arch/issues</bugs-to>
+		<remote-id type="github">Ryoku-dev/ryoku</remote-id>
+		<bugs-to>https://github.com/Ryoku-dev/ryoku/issues</bugs-to>
 	</upstream>
 </pkgmetadata>
