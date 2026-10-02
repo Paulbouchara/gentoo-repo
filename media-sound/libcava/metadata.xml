@@ -8,8 +8,8 @@
 	<upstream>
 		<remote-id type="github">LukashonakV/cava</remote-id>
 	</upstream>
-  <use>
-    <flag name='pipewire'>Enables support for PipeWire</flag>
-    <flag name='sndio'>Enable support for the media-sound/sndio backend</flag>
-  </use>
+	<use>
+		<flag name='pipewire'>Enables support for PipeWire</flag>
+		<flag name='sndio'>Enable support for the media-sound/sndio backend</flag>
+	</use>
 </pkgmetadata>
