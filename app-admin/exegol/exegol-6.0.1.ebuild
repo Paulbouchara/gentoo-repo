@@ -6,7 +6,7 @@ EAPI=8
 DISTUTILS_USE_PEP517=pdm-backend
 PYTHON_COMPAT=( python3_{12..14} )
 
-inherit distutils-r1 git-r3
+inherit distutils-r1 pypi
 
 DESCRIPTION="Python wrapper for Exegol, a container-based hacking environment"
 HOMEPAGE="
@@ -14,12 +14,10 @@ HOMEPAGE="
 	https://github.com/ThePorgs/Exegol
 	https://pypi.org/project/exegol/
 "
-EGIT_REPO_URI="https://github.com/ThePorgs/Exegol.git"
-# exegol-images and exegol-resources are large and not needed by the wrapper
-EGIT_SUBMODULES=()
 
 LICENSE="GPL-3+"
 SLOT="0"
+KEYWORDS="~amd64"
 
 # Upstream pins with ~= (compatible release); only the lower bounds are kept.
 RDEPEND="
@@ -40,4 +38,5 @@ RDEPEND="
 	dev-vcs/git
 "
 
-# Upstream has no tests yet (tests/ only holds an empty __init__.py).
+# Upstream has no tests yet (its tests/ only holds an empty __init__.py and is
+# excluded from the sdist).
