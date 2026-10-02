@@ -3,7 +3,7 @@
 
 EAPI=8
 
-RUST_MIN_VER="1.88.0"
+RUST_MIN_VER="1.98.0"
 
 inherit cargo git-r3
 
@@ -13,7 +13,6 @@ EGIT_REPO_URI="https://github.com/xodus-gaming/xodus.git"
 
 LICENSE="GPL-3+"
 SLOT="0"
-KEYWORDS=""
 
 RDEPEND="
 	dev-libs/glib:2
@@ -27,15 +26,14 @@ RDEPEND="
 "
 DEPEND="${RDEPEND}"
 BDEPEND="
+	dev-build/cmake
+	dev-libs/protobuf[protoc(+)]
 	virtual/pkgconfig
 "
 
-src_prepare() {
-	sed -i 's/return ExitCode::SUCCESS;/continue;/' crates/xodus-cli/src/commands/download.rs || die
-	sed -i '/println!("ContentID: {content_id}");/i \    if dry_run { return ExitCode::SUCCESS; }' crates/xodus-cli/src/commands/download.rs || die
-	sed -i 's/if exe == fd.0 {/if exe.trim_start_matches('\''\\\\'\'').eq_ignore_ascii_case(fd.0.trim_start_matches('\''\\\\'\'')) {/' crates/xodus-cli/src/commands/run.rs || die
-	default
-}
+PATCHES=(
+	"${FILESDIR}"/${PN}-run-exe-match.patch
+)
 
 src_unpack() {
 	git-r3_src_unpack
@@ -43,9 +41,7 @@ src_unpack() {
 }
 
 src_install() {
-	dobin target/release/xodus-cli target/release/xodus-service
+	dobin "$(cargo_target_dir)"/xodus-{cli,service}
 	dodoc README.md
-	if [[ -d docs ]]; then
-		dodoc -r docs/*
-	fi
+	dodoc -r docs/.
 }

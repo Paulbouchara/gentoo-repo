@@ -1,11 +1,12 @@
 --- a/dlls/xgameruntime/main.c
 +++ b/dlls/xgameruntime/main.c
-@@ -88,7 +88,27 @@
+@@ -88,7 +88,28 @@
              *last = 0;
              if (!strrchr( filename, '\\' )) return E_GAME_MISSING_GAME_CONFIG;
          }
 -        if (!(config = xmlReadFile( filename, NULL, 0 ))) return E_GAMERUNTIME_GAMECONFIG_BAD_FORMAT;
-+        
++
++        config = NULL;
 +        {
 +            HANDLE hFile = CreateFileA(filename, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
 +            if (hFile != INVALID_HANDLE_VALUE) {
@@ -20,7 +21,7 @@
 +                }
 +                CloseHandle(hFile);
 +            }
-+            
++
 +            if (!config) {
 +                ERR("Failed to read or parse game config: %s\n", debugstr_a(filename));
 +                return E_GAMERUNTIME_GAMECONFIG_BAD_FORMAT;

@@ -1,0 +1,15 @@
+Match the --exe argument against the package file list case-insensitively
+and ignoring leading backslashes, so that e.g. "game.exe" finds
+"\Game.exe".
+
+--- a/crates/xodus-cli/src/commands/run.rs
++++ b/crates/xodus-cli/src/commands/run.rs
+@@ -222,7 +222,7 @@
+         let nt_suffix = fd.0.trim_start_matches('\\');
+         let nt_path = format!("\\??\\Z:{}\\{}", nt_prefix, nt_suffix);
+         if let Some(exe) = &exe {
+-            if exe == fd.0 {
++            if exe.trim_start_matches('\\').eq_ignore_ascii_case(nt_suffix) {
+                 nt_entry = Some(nt_path)
+             }
+         } else if nt_entry.is_none() {
