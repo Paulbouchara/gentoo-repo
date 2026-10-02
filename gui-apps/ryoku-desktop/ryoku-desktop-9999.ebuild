@@ -9,6 +9,11 @@ EAPI=8
 # daemon, the ryovm/ryostore helpers, the Ryoku.Blobs C++/Qt6 QML plugin and
 # the livewall C daemon) and lays the base config tree under
 # /usr/share/ryoku/config that "ryoku materialize" copies into ~/.config.
+#
+# Since upstream 83ac35cd (2026-09-14) the desktop is compositor-neutral and the
+# Hyprland half ships as ryoku-desktop-hyprland (config tree, portal, the
+# ryoku-wm-hyprland provider and its Ryoku.Wm.Hyprland QML bridges). This
+# ebuild folds that variant in; the niri variant is not packaged.
 
 PYTHON_COMPAT=( python3_{11..13} )
 
@@ -82,6 +87,7 @@ RDEPEND="
 	gui-apps/grim
 	gui-apps/slurp
 	gui-apps/wl-clipboard
+	gui-apps/wl-clip-persist
 	gui-apps/fuzzel
 	gui-apps/wtype
 	gui-apps/wf-recorder
@@ -176,8 +182,10 @@ DEPEND="
 	media-video/ffmpeg:=
 "
 
-# go BDEPEND comes from go-module.eclass. cmake/ninja come from cmake.eclass.
+# go-module.eclass adds an unversioned go; the Go modules declare go 1.26.4 and
+# GOTOOLCHAIN=local forbids fetching a newer one. cmake/ninja: cmake.eclass.
 BDEPEND="
+	>=dev-lang/go-1.26.4
 	dev-util/wayland-scanner
 	dev-libs/wayland-protocols
 	virtual/pkgconfig
@@ -244,6 +252,11 @@ touch your running system. Do the following yourself:
      systemctl --user enable --now ryoku-rashin.service            # if you use rashin
      systemctl --user enable --now ryoku-eq.service                # PipeWire EQ, optional
 
+   ryoku-bootstrap.service runs 'ryoku materialize' before a login whose config
+   was never laid down. /usr/bin/ryoku-session already does that, so enable it
+   only for sessions started another way:
+     systemctl --global enable ryoku-bootstrap.service
+
    Enable the system boot guard if you want the update doctor's behaviour:
      systemctl enable ryoku-boot-guard.service
 
@@ -280,6 +293,11 @@ gpu-screen-recorder (Super+U falls back to the shipped wf-recorder), and the
 mpv-mpris script (the '@' live-radio now-playing widget will not follow
 playback). Arch-only boot bits (Limine hooks, the mkinitcpio GPU-trim hook) are
 intentionally dropped.
+
+Upstream's environment.d/ryoku-session.conf is NOT installed. The systemd user
+manager would hand it to every session, KDE Plasma included, where its
+QT_QPA_PLATFORMTHEME=qt6ct and fixed PATH break the Plasma theme and Gentoo's
+PATH. Hyprland sets the same variables itself from hypr/modules/env.lua.
 "
 
 src_unpack() {
@@ -384,6 +402,9 @@ src_compile() {
 		"ryoku/apps/ryovm/mon:ryovm-mon:mod"
 		"ryoku/apps/ryovm/remote:ryossh:mod"
 		"ryoku/apps/ryostore/backend:ryostore:mod"
+		# the Hyprland provider of the wm seam; the module root (go.mod +
+		# vendor/) is ryoku/wm, one level up.
+		"ryoku/wm/hyprland:ryoku-wm-hyprland:vendor"
 	)
 	mkdir -p "${T}/gobin" || die
 	local entry dir bin mode
@@ -409,7 +430,7 @@ src_install() {
 	local qmldir="/usr/$(get_libdir)/qt6/qml/Ryoku"
 
 	# --- 1. binaries -----------------------------------------------------------
-	dobin "${T}"/gobin/{ryoku,ryoku-shell,ryoku-hub,ryoku-rashin,ryogami,ryovm-fetch,ryovm-mon,ryossh,ryostore}
+	dobin "${T}"/gobin/{ryoku,ryoku-shell,ryoku-hub,ryoku-rashin,ryogami,ryovm-fetch,ryovm-mon,ryossh,ryostore,ryoku-wm-hyprland}
 	newbin "${T}/ryoku-livewall" ryoku-livewall
 	# upstream ships these as separate =$pkgver packages; here they are aliases.
 	dosym ryoku-rashin /usr/bin/rashin
@@ -426,15 +447,19 @@ src_install() {
 		dobin "${S}/ryoku/shell/bin/${b}"
 	done
 
-	# ryoku-shell package helpers: ryoku-eq is the ExecStart of ryoku-eq.service.
-	dobin "${S}"/ryoku/shell/scripts/{ryoku-eq,ryostage,ryoku-reload-cover}
+	# ryoku-shell package helpers: every leaf script the bar, launcher, Hub,
+	# keybinds and daemon call by bare name (ryoku-app, ryoku-cmd-*, ryoku-eq,
+	# ...), the Stash/LocalSend .sh backends, and the ryostage launcher. Same
+	# globs as upstream's ryoku-shell PKGBUILD, so a new script needs no edit.
+	local s
+	for s in "${S}"/ryoku/shell/scripts/{ryoku-*,*.sh,ryostage}; do
+		[[ -f ${s} ]] && dobin "${s}"
+	done
 	insinto /usr/share/ryoku/reload-cover
 	doins -r "${S}/ryoku/shell/quickshell/reload-cover/."
 
-	# helper scripts the shell, Hub, pill and Hyprland autostart call by name.
-	# hypr/scripts/ryoku-* are ALSO shipped in the config tree below (the shell
-	# calls the ~/.config copies by absolute path); on PATH for CLI use.
-	local s
+	# Hyprland's own leaf scripts (ryoku-monitor, ryoku-workspace, ...), from
+	# ryoku-desktop-hyprland. They are ALSO shipped in the config tree below.
 	for s in "${S}"/ryoku/hyprland/scripts/ryoku-*; do
 		[[ -f ${s} ]] && dobin "${s}"
 	done
@@ -479,6 +504,10 @@ src_install() {
 	doins -r "${S}/ryoku/shell/framebars/."
 	insinto "${qmldir}/PluginKit"
 	doins -r "${S}/ryoku/shell/quickshell/plugins/kit/."
+	# the provider's QML bridges (global shortcuts, focus grab) the shell
+	# imports instead of Quickshell.Hyprland.
+	insinto "${qmldir}/Wm/Hyprland"
+	doins -r "${S}/ryoku/wm/hyprland/qml/."
 
 	# --- 3. base config tree for `ryoku materialize` -----------------------
 	insinto "${cfg}/hypr"
@@ -502,7 +531,7 @@ src_install() {
 	doins -r "${S}/ryoku/shell/matugen/."
 
 	insinto "${cfg}/xdg-desktop-portal"
-	doins "${S}/ryoku/shell/portals/hyprland-portals.conf"
+	doins "${S}/ryoku/hyprland/hyprland-portals.conf"
 
 	insinto "${cfg}/gtk-3.0"
 	doins "${S}/ryoku/shell/gtk-3.0/settings.ini"
@@ -580,9 +609,13 @@ src_install() {
 	exeinto /usr/share/ryoku/lockscreen
 	doexe "${S}/ryoku/lockscreen/install-qylock"
 	if use sddm; then
-		# weston --shell=kiosk SDDM Wayland-greeter wrapper. Only useful with SDDM.
-		doexe "${S}/ryoku/lockscreen/sddm/ryoku-greeter"
+		# weston --shell=kiosk SDDM Wayland-greeter wrapper, and the session
+		# wrapper that waits for weston to release the GPU. Only useful with SDDM.
+		doexe "${S}"/ryoku/lockscreen/sddm/{ryoku-greeter,ryoku-wayland-session}
 	fi
+	# the lock/unlock helpers the shell and the lock button call by bare name.
+	dobin "${S}"/ryoku/lockscreen/{ryoku-qylock-activate,ryoku-qylock-lock}
+	dobin "${S}/ryoku/lockscreen/qylock/quickshell-lockscreen/ryoku-qylock-unlock-prepare"
 
 	# browser extension (Ryoku Theme): source plus the two assembled unpacked
 	# dirs the browsers load from. Prune the stale dist/ from the source copy.
@@ -611,7 +644,7 @@ src_install() {
 	insinto /usr/share/ryoku/rashin
 	doins "${T}/ryoku-repo.md"
 	insinto /usr/share/ryoku/skills/ryoku
-	doins "${S}"/ryoku/rashin/skills/ryoku/{SKILL.md,bar.md,plugins.md}
+	doins "${S}"/ryoku/rashin/skills/ryoku/{SKILL.md,gui.md,bar.md,plugins.md}
 
 	# --- 5. desktop files + icons --------------------------------------
 	local d
@@ -648,6 +681,7 @@ src_install() {
 	doins "${S}"/system/hardware/network/4[89]-ryoku-*.rules
 	doins "${S}"/system/hardware/network/5[015]-ryoku-*.rules
 	doins "${S}/system/hardware/power/47-ryoku-power.rules"
+	doins "${S}/system/hardware/gpu/45-ryoku-gpu-mux.rules"
 	doins "${S}/system/hardware/power/53-ryoku-game-tune.rules"
 	doins "${S}/system/hardware/bluetooth/54-ryoku-bluetooth-a2dp.rules"
 	doins "${S}/system/containers/46-ryoku-docker.rules"
@@ -677,13 +711,21 @@ src_install() {
 
 	newtmpfiles "${S}/ryoku/cli/systemd/ryoku.tmpfiles.conf" ryoku.conf
 
+	# resolves the localized XDG_*_DIR from user-dirs.dirs at login, so the
+	# shell's Pictures/Downloads roots follow a non-English home. Only exports
+	# the user's own dirs, safe for every session. (environment.d/
+	# ryoku-session.conf is deliberately skipped, see DOC_CONTENTS.)
+	exeinto /usr/lib/systemd/user-environment-generators
+	doexe "${S}/ryoku/shell/systemd/user-environment-generators/60-ryoku-xdg-dirs"
+
 	systemd_douserunit \
 		"${S}/ryoku/shell/systemd/user/ryoku-shell.service" \
 		"${S}/ryoku/shell/systemd/user/ryogami.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-eq.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-ai-usage.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-ai-usage.timer" \
-		"${S}/ryoku/shell/systemd/user/hyprland-session.target" \
+		"${S}/ryoku/shell/systemd/user/ryoku-bootstrap.service" \
+		"${S}/ryoku/shell/systemd/user/ryoku-session.target" \
 		"${S}/ryoku/rashin/systemd/ryoku-rashin.service" \
 		"${S}/system/hardware/bluetooth/ryoku-bluetooth-reset.service"
 
