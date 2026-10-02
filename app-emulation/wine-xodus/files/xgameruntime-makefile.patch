@@ -1,0 +1,10 @@
+--- a/dlls/xgameruntime/Makefile.in
++++ b/dlls/xgameruntime/Makefile.in
+@@ -1,6 +1,6 @@
+ MODULE    = xgameruntime.dll
+ EXTRAINCL = $(XML2_PE_CFLAGS)
+-IMPORTS   = bcrypt combase dbghelp shlwapi winhttp wininet $(XML2_PE_LIBS)
++IMPORTS   = bcrypt combase dbghelp shlwapi winhttp wininet ws2_32 $(XML2_PE_LIBS)
+ 
+ SOURCES = \
+ 	main.c \

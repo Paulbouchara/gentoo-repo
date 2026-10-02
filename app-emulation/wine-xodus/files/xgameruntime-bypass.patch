@@ -1,0 +1,27 @@
+--- a/dlls/xgameruntime/main.c
++++ b/dlls/xgameruntime/main.c
+@@
+-static HRESULT get_rps_tickets( BOOLEAN allowUi, char **userTicket, char **deviceTicket )
+-{
+-    /* ... original implementation that talks to xodus-service via Unix socket ... */
+-    ...
+-}
++/* Renamed original implementation */
++static HRESULT get_rps_tickets_original( BOOLEAN allowUi, char **userTicket, char **deviceTicket )
++{
++    /* Original code unchanged – copied verbatim from upstream */
++    ...
++}
++
++/* Patched wrapper – bypasses the service when env vars are set */
++static HRESULT get_rps_tickets( BOOLEAN allowUi, char **userTicket, char **deviceTicket )
++{
++    const char *ut = getenv("XUSER_TOKEN");
++    const char *dt = getenv("XDEVICE_RPS");
++    if (ut && dt) {
++        *userTicket   = strdup(ut);
++        *deviceTicket = strdup(dt);
++        return S_OK;
++    }
++    return get_rps_tickets_original(allowUi, userTicket, deviceTicket);
++}

@@ -1,0 +1,65 @@
+--- a/dlls/xgameruntime/xuser.c
++++ b/dlls/xgameruntime/xuser.c
+@@ -145,8 +146,52 @@
+ 
+ static HRESULT get_rps_tickets( BOOLEAN allowUi, char **userTicket, char **deviceTicket )
+ {
+-    FIXME( "allowUi %d, userTicket %p, deviceTicket %p stub!\n", allowUi, userTicket, deviceTicket );
+-    return E_NOTIMPL;
++    /* Read pre-fetched tickets from files written by xodus-service helper. */
++    HANDLE hFile;
++    DWORD bytesRead, fileSize;
++    char homePath[MAX_PATH];
++    char userPath[MAX_PATH];
++    char devicePath[MAX_PATH];
++    char *userBuf = NULL, *deviceBuf = NULL;
++    HRESULT hr = E_FAIL;
++
++    /* Determine home directory path */
++    if (!GetEnvironmentVariableA( "HOME", homePath, sizeof(homePath) ))
++    {
++        WARN( "HOME env var not set\n" );
++        goto cleanup;
++    }
++    snprintf( userPath,   sizeof(userPath),   "%s/xodustickets/user.txt",   homePath );
++    snprintf( devicePath, sizeof(devicePath), "%s/xodustickets/device.txt", homePath );
++
++    /* Read user ticket */
++    hFile = CreateFileA( userPath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL );
++    if (hFile == INVALID_HANDLE_VALUE) { WARN( "Cannot open %s\n", userPath ); goto cleanup; }
++    fileSize = GetFileSize( hFile, NULL );
++    if (fileSize == INVALID_FILE_SIZE || fileSize == 0) { CloseHandle( hFile ); goto cleanup; }
++    userBuf = calloc( 1, fileSize + 1 );
++    if (!userBuf) { CloseHandle( hFile ); hr = E_OUTOFMEMORY; goto cleanup; }
++    ReadFile( hFile, userBuf, fileSize, &bytesRead, NULL );
++    CloseHandle( hFile );
++    /* Strip trailing newline */
++    while (bytesRead > 0 && (userBuf[bytesRead-1] == '\n' || userBuf[bytesRead-1] == '\r'))
++        userBuf[--bytesRead] = '\0';
++    if (bytesRead == 0) goto cleanup;
++
++    /* Read device ticket */
++    hFile = CreateFileA( devicePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL );
++    if (hFile == INVALID_HANDLE_VALUE) { WARN( "Cannot open %s\n", devicePath ); goto cleanup; }
++    fileSize = GetFileSize( hFile, NULL );
++    if (fileSize == INVALID_FILE_SIZE || fileSize == 0) { CloseHandle( hFile ); goto cleanup; }
++    deviceBuf = calloc( 1, fileSize + 1 );
++    if (!deviceBuf) { CloseHandle( hFile ); hr = E_OUTOFMEMORY; goto cleanup; }
++    ReadFile( hFile, deviceBuf, fileSize, &bytesRead, NULL );
++    CloseHandle( hFile );
++    while (bytesRead > 0 && (deviceBuf[bytesRead-1] == '\n' || deviceBuf[bytesRead-1] == '\r'))
++        deviceBuf[--bytesRead] = '\0';
++    if (bytesRead == 0) goto cleanup;
++
++    *userTicket   = userBuf;   userBuf   = NULL;
++    *deviceTicket = deviceBuf; deviceBuf = NULL;
++    hr = S_OK;
++    TRACE( "Loaded tickets from %s and %s\n", userPath, devicePath );
++
++cleanup:
++    free( userBuf );
++    free( deviceBuf );
++    return hr;
+ }
+ 
+ static HRESULT device_auth( XUserHandle user, const char *deviceTicket, char **deviceToken )

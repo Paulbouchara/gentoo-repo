@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>paul@localhost</email>
+		<name>Paul</name>
+	</maintainer>
+	<longdescription lang="en">
+		Ryoku Desktop is the Gentoo packaging of the "ryoku" rice by neur0map: a
+		complete Hyprland-based Wayland desktop built around a Quickshell shell,
+		the Ryoku Hub settings surface, the Ryogami wallpaper daemon and a family
+		of first-party helper apps (RyoVM, RyoStore, Rashin). It compiles the
+		Ryoku.Blobs QML plugin, the livewall C daemon and every Go daemon/CLI,
+		installs a branded compositor session entry, and lays a base
+		configuration tree under /usr/share/ryoku/config that "ryoku materialize"
+		copies into a user's ~/.config. This is the umbrella package; it pulls
+		in the compositor, the shell runtime, fonts and the command-line tools
+		the shell invokes by name.
+
+		Unlike the upstream Arch package it does NOT enable system services or
+		run hardware tuners at merge time; see the post-install notes
+		(readme.gentoo) for the manual steps.
+
+		This ebuild lives in an overlay and depends on packages that are not in
+		the ::gentoo tree: the compositor stack (gui-wm/hyprland,
+		gui-apps/quickshell, gui-apps/hypr*, x11-misc/matugen, app-misc/cliphist,
+		app-misc/brightnessctl, gui-apps/fuzzel, gui-apps/wtype) and
+		x11-themes/adw-gtk3 generally come from the guru and hyprland community
+		overlays, and the fonts
+		media-fonts/{otf-space-grotesk,fraunces,material-symbols-variable} are
+		provided by this overlay. Not everything upstream ships has a Gentoo
+		equivalent: the Hyprland compositor plugins the Hub Plugins page toggles,
+		hyprland-preview-share-picker, gpu-screen-recorder and the mpv-mpris
+		script are unavailable and the corresponding features degrade.
+	</longdescription>
+	<use>
+		<flag name="bluetooth">
+			Pull in <pkg>net-wireless/bluez</pkg> for the pill/Hub Bluetooth
+			controls (Quickshell.Bluetooth over D-Bus, bluetoothctl) and install
+			the Bluetooth A2DP-reset user unit and autosuspend modprobe drop-in.
+		</flag>
+		<flag name="gaming">
+			Install the optional gaming stack the Ryoku Hub can toggle
+			(<pkg>gui-wm/gamescope</pkg>, <pkg>games-util/gamemode</pkg>).
+		</flag>
+		<flag name="kwallet">
+			Patch the Hyprland autostart to auto-unlock KDE Wallet via
+			<pkg>kde-plasma/kwallet-pam</pkg> (pam_kwallet_init) on session
+			start. Enable if you keep KWallet instead of gnome-keyring; you must
+			also wire pam_kwallet5.so into your login PAM stack.
+		</flag>
+		<flag name="nautilus">
+			Install the Ryoku stash-actions extension for
+			<pkg>gnome-base/nautilus</pkg> (nautilus-python right-click menu).
+		</flag>
+		<flag name="nvidia">
+			Apply NVIDIA-specific session environment tweaks in the shipped
+			Hyprland configuration (cursor and render workarounds). No extra
+			package dependencies - drivers are a profile/kernel matter.
+		</flag>
+		<flag name="ocr">
+			Enable the screenshot OCR / QR-scan pill feature
+			(<pkg>app-text/tesseract</pkg>, <pkg>app-text/tessdata_fast</pkg>,
+			<pkg>media-gfx/zbar</pkg>).
+		</flag>
+		<flag name="plasma-integration">
+			Pull in <pkg>kde-plasma/plasma-integration</pkg> so KDE apps
+			(Dolphin, Kate) pick up the platform theme. Off by default since the
+			session is leaving Plasma.
+		</flag>
+		<flag name="plymouth">
+			Install the Ryoku Plymouth boot theme and the ryoku-boot-apply
+			helper. Only meaningful with a Plymouth-enabled initramfs.
+		</flag>
+		<flag name="power-profiles">
+			Depend on a power-profile D-Bus service for the shell's power-mode
+			UI, satisfiable by either <pkg>sys-power/power-profiles-daemon</pkg>
+			or <pkg>sys-apps/tuned</pkg> built with its own ppd flag. Disable if
+			you provide the interface another way.
+		</flag>
+		<flag name="sddm">
+			Install the weston-based SDDM Wayland-greeter wrapper
+			(<pkg>dev-libs/weston</pkg>, ryoku-greeter running
+			weston --shell=kiosk). Not needed with greetd/ReGreet or GDM.
+		</flag>
+		<flag name="security-keys">
+			Pull in <pkg>sys-auth/pam_u2f</pkg> (pamu2fcfg) for the Hub
+			FIDO2/U2F security-key enrollment flow.
+		</flag>
+		<flag name="vm">
+			Install RyoVM virtual-machine and GPU-passthrough support
+			(<pkg>app-emulation/qemu</pkg>, <pkg>app-emulation/libvirt</pkg>,
+			<pkg>app-crypt/swtpm</pkg>, OVMF, spice-gtk, xorriso).
+		</flag>
+		<flag name="zsh">
+			Pull in <pkg>app-shells/zsh</pkg> and
+			<pkg>app-shells/zsh-syntax-highlighting</pkg> that the shipped
+			ryoku.zsh sources; the zsh dotfiles are always installed.
+			(zsh-autosuggestions and zsh-history-substring-search are not
+			packaged for Gentoo and are skipped at runtime.)
+		</flag>
+	</use>
+	<upstream>
+		<remote-id type="github">neur0map/ryoku-arch</remote-id>
+		<bugs-to>https://github.com/neur0map/ryoku-arch/issues</bugs-to>
+	</upstream>
+</pkgmetadata>
