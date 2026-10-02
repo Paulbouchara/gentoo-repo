@@ -3,12 +3,12 @@
 
 EAPI=8
 
-inherit git-r3
+MY_PN="ananicy-rules"
 
 DESCRIPTION="CachyOS ananicy-cpp rules (process nice/ionice/sched rules for ananicy-cpp)"
 HOMEPAGE="https://github.com/CachyOS/ananicy-rules"
-EGIT_REPO_URI="https://github.com/CachyOS/ananicy-rules.git"
-EGIT_COMMIT="03ef03fbf7e834385377432ccecaedd32e3414bb"
+SRC_URI="https://github.com/CachyOS/${MY_PN}/archive/refs/tags/${PV}.tar.gz -> ${P}.tar.gz"
+S="${WORKDIR}/${MY_PN}-${PV}"
 
 LICENSE="GPL-3"
 SLOT="0"
@@ -29,6 +29,4 @@ src_install() {
 pkg_postinst() {
 	elog "CachyOS ananicy-cpp rules installed to /etc/ananicy.d"
 	elog "Enable/start with: systemctl enable --now ananicy-cpp"
-	elog "Re-run 'emerge -1 =${CATEGORY}/${PF}' to pull upstream rule updates"
-	elog "(pin bumped via EGIT_COMMIT in the ebuild, ${PV#*_p} snapshot date)."
 }
