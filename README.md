@@ -17,7 +17,16 @@ priority = 60
 
 Then `emaint sync -r gentoo-overlay`.
 
-Most packages are keyworded `~amd64` only, and several are live (`9999`) ebuilds.
+Many dependencies live in other overlays, which must be enabled too:
+`guru` (quickshell, matugen, fuzzel, cliphist, ananicy-cpp, …) and
+`hyproverlay` (Hyprland and its tools, for `gui-apps/ryoku-desktop`).
+
+Released versions are keyworded `~amd64`. Live `9999` ebuilds have no keywords,
+so Portage only picks one when asked, e.g. in `package.accept_keywords`:
+
+```
+=gui-apps/ryoku-desktop-9999 **
+```
 
 ## Work on it
 
