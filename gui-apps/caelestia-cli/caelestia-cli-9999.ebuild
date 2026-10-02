@@ -4,9 +4,9 @@
 EAPI=8
 
 DISTUTILS_USE_PEP517=hatchling
-PYTHON_COMPAT=( python3_{12..14} )
+PYTHON_COMPAT=( python3_{13..14} )
 
-inherit distutils-r1
+inherit distutils-r1 optfeature shell-completion
 
 DESCRIPTION="The main CLI for the Caelestia dotfiles and desktop shell"
 HOMEPAGE="https://github.com/caelestia-dots/cli"
@@ -40,8 +40,10 @@ BDEPEND="
 
 python_install_all() {
 	distutils-r1_python_install_all
-	if [[ -f completions/caelestia.fish ]]; then
-		insinto /usr/share/fish/vendor_completions.d
-		doins completions/caelestia.fish
-	fi
+	dofishcomp completions/caelestia.fish
+}
+
+pkg_postinst() {
+	optfeature "screen recording (caelestia record)" media-video/gpu-screen-recorder
+	optfeature "applying the GTK theme and colour scheme" gnome-base/dconf
 }
