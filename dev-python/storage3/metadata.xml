@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>23699781+Paulbouchara@users.noreply.github.com</email>
+		<name>Paul Bouchara</name>
+	</maintainer>
+	<upstream>
+		<remote-id type="github">supabase/supabase-py</remote-id>
+		<remote-id type="pypi">storage3</remote-id>
+		<bugs-to>https://github.com/supabase/supabase-py/issues</bugs-to>
+		<changelog>https://github.com/supabase/supabase-py/blob/main/CHANGELOG.md</changelog>
+	</upstream>
+</pkgmetadata>
