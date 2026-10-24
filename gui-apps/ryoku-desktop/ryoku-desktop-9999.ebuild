@@ -427,6 +427,9 @@ src_compile() {
 		"ryoku/apps/ryovm/mon:ryovm-mon:mod"
 		"ryoku/apps/ryovm/remote:ryossh:mod"
 		"ryoku/apps/ryostore/backend:ryostore:mod"
+		# wallpaper palette event bridge; upstream's ryoku-desktop depends
+		# on it (ryogami and the picker's Integrations tab call it).
+		"ryoku/palette-bridge:ryoku-palette-bridge:mod"
 		# the Hyprland provider of the wm seam; the module root (go.mod +
 		# vendor/) is ryoku/wm, one level up.
 		"ryoku/wm/hyprland:ryoku-wm-hyprland:vendor"
@@ -455,11 +458,22 @@ src_install() {
 	local qmldir="/usr/$(get_libdir)/qt6/qml/Ryoku"
 
 	# --- 1. binaries -----------------------------------------------------------
-	dobin "${T}"/gobin/{ryoku,ryoku-shell,ryoku-hub,ryoku-rashin,ryogami,ryovm-fetch,ryovm-mon,ryossh,ryostore,ryoku-wm-hyprland}
+	dobin "${T}"/gobin/{ryoku,ryoku-shell,ryoku-hub,ryoku-rashin,ryogami,ryovm-fetch,ryovm-mon,ryossh,ryostore,ryoku-wm-hyprland,ryoku-palette-bridge}
 	newbin "${T}/ryoku-livewall" ryoku-livewall
 	# upstream ships these as separate =$pkgver packages; here they are aliases.
 	dosym ryoku-rashin /usr/bin/rashin
 	dosym ryoku-livewall /usr/bin/ryogami-live
+
+	# ryoku-palette-bridge: helper scripts + the packaged integration payloads
+	# (spicetify, vesktop, zen extension, templates) under /usr/share.
+	newbin "${S}/ryoku/palette-bridge/doctor.sh" ryoku-palette-bridge-doctor
+	newbin "${S}/ryoku/palette-bridge/remove-integrations.sh" ryoku-palette-bridge-remove-integrations
+	insinto /usr/share/ryoku/palette-bridge
+	doins -r "${S}/ryoku/palette-bridge/."
+	fperms 0755 /usr/share/ryoku/palette-bridge/install.sh \
+		/usr/share/ryoku/palette-bridge/install-integrations.sh \
+		/usr/share/ryoku/palette-bridge/doctor.sh \
+		/usr/share/ryoku/palette-bridge/remove-integrations.sh
 
 	# ryoku-i18n: the UI translation tool the Hub and Hyprland autostart call by
 	# name (upstream: ryoku/i18n/tools/sync.py, python3 stdlib-only).
@@ -780,6 +794,7 @@ src_install() {
 		"${S}/ryoku/shell/systemd/user/ryoku-eq.service" \
 		"${S}/ryoku/rashin/systemd/ryoku-ai-usage.service" \
 		"${S}/ryoku/rashin/systemd/ryoku-ai-usage.timer" \
+		"${S}/ryoku/palette-bridge/packaging/systemd/ryoku-palette-bridge.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-bootstrap.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-session.target" \
 		"${S}/ryoku/rashin/systemd/ryoku-rashin.service" \
