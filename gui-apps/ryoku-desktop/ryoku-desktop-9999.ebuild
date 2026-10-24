@@ -69,6 +69,7 @@ RDEPEND="
 	dev-qt/qtbase:6[wayland,opengl,gui,widgets]
 	dev-qt/qtdeclarative:6[opengl,svg,widgets]
 	dev-qt/qtmultimedia:6[ffmpeg,opengl,qml,wayland]
+	dev-qt/qtquick3d:6
 	dev-qt/qt5compat:6
 	dev-qt/qtsvg:6
 	dev-qt/qtimageformats:6
@@ -182,6 +183,7 @@ DEPEND="
 	dev-qt/qtbase:6
 	dev-qt/qtdeclarative:6
 	dev-qt/qtmultimedia:6
+	dev-qt/qtquick3d:6
 	dev-qt/qtshadertools:6
 	dev-util/vulkan-headers
 	media-video/ffmpeg:=
@@ -508,6 +510,14 @@ src_install() {
 	local so
 	for so in "${ED}${qmldir}/Blobs"/*.so; do
 		[[ -f ${so} ]] && fperms 0755 "${qmldir}/Blobs/${so##*/}"
+	done
+
+	# Ryoku.Spatial3D: the Stage's depth-displaced wallpaper mesh (needs
+	# QtQuick3D), built by the same CMake project as Blobs.
+	insinto "${qmldir}/Spatial3D"
+	doins -r "${BUILD_DIR}/qml/Ryoku/Spatial3D/."
+	for so in "${ED}${qmldir}/Spatial3D"/*.so; do
+		[[ -f ${so} ]] && fperms 0755 "${qmldir}/Spatial3D/${so##*/}"
 	done
 
 	# Ryoku.Ryogami picker module (upstream drops the .qrc files it leaves behind).
