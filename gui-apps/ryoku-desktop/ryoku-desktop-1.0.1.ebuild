@@ -284,9 +284,9 @@ touch your running system. Do the following yourself:
      session  optional  pam_kwallet5.so auto_start kwallet6
 
 Rashin (the local agent daemon) is inert until you run 'ryoku-rashin enable'.
-Its upstream prereqs uv/nodejs/prowl-agent are not pulled in; install
-dev-python/uv, net-libs/nodejs and app-misc/prowl-agent (from this overlay, the
-build Ryoku pins) by hand if you enable it.
+Its upstream prereqs uv/nodejs/prowl are not pulled in; install
+dev-python/uv, net-libs/nodejs and app-misc/prowl (from this overlay, the
+release Ryoku pins) by hand if you enable it.
 
 USE=zsh installs the zsh dotfiles but only pulls app-shells/zsh and
 app-shells/zsh-syntax-highlighting; zsh-autosuggestions and
