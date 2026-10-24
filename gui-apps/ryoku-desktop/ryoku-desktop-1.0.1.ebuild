@@ -69,6 +69,7 @@ RDEPEND="
 	dev-qt/qtbase:6[wayland,opengl,gui,widgets]
 	dev-qt/qtdeclarative:6[opengl,svg,widgets]
 	dev-qt/qtmultimedia:6[ffmpeg,opengl,qml,wayland]
+	dev-qt/qtquick3d:6
 	dev-qt/qt5compat:6
 	dev-qt/qtsvg:6
 	dev-qt/qtimageformats:6
@@ -182,7 +183,9 @@ DEPEND="
 	dev-qt/qtbase:6
 	dev-qt/qtdeclarative:6
 	dev-qt/qtmultimedia:6
+	dev-qt/qtquick3d:6
 	dev-qt/qtshadertools:6
+	dev-util/vulkan-headers
 	media-video/ffmpeg:=
 "
 
@@ -205,6 +208,8 @@ RESTRICT+=" test"
 
 # The Blobs QML module - one package-level tree, not per-phase locals.
 CMAKE_USE_DIR="${S}/ryoku/shell/plugin"
+# The Ryoku.Ryogami picker is a second CMake project, built out of tree here.
+PICKER_BUILD="${WORKDIR}/picker_build"
 
 # Keep the numbered steps and command blocks verbatim in the README.
 DISABLE_AUTOFORMATTING=1
@@ -369,6 +374,16 @@ src_compile() {
 	#    the component is LTO-neutral).
 	cmake_src_compile
 
+	# 1b. Ryoku.Ryogami - the wallpaper picker (C++ GPU card renderer + Qt
+	#     Quick UI), same shape as Blobs. Upstream's picker/build.sh runs
+	#     cmake+ninja the same way; the daemon spawns it through quickshell.
+	(
+		CMAKE_USE_DIR="${S}/ryoku/shell/ryogami/picker"
+		BUILD_DIR="${PICKER_BUILD}"
+		cmake_src_configure
+		cmake_src_compile
+	) || die "ryogami picker build failed"
+
 	# 2. livewall - C11 / Wayland video-wallpaper daemon (installed as
 	#    ryoku-livewall, symlinked ryogami-live). wlr-layer-shell references
 	#    xdg-shell interfaces at the C level, so all three protocols are
@@ -454,7 +469,7 @@ src_install() {
 	# ~/.cache/*-usage.json they refresh.
 	local b
 	for b in claude-usage codex-usage opencode-usage; do
-		dobin "${S}/ryoku/shell/bin/${b}"
+		dobin "${S}/ryoku/rashin/usage/${b}"
 	done
 
 	# ryoku-shell package helpers: every leaf script the bar, launcher, Hub,
@@ -495,6 +510,22 @@ src_install() {
 	local so
 	for so in "${ED}${qmldir}/Blobs"/*.so; do
 		[[ -f ${so} ]] && fperms 0755 "${qmldir}/Blobs/${so##*/}"
+	done
+
+	# Ryoku.Spatial3D: the Stage's depth-displaced wallpaper mesh (needs
+	# QtQuick3D), built by the same CMake project as Blobs.
+	insinto "${qmldir}/Spatial3D"
+	doins -r "${BUILD_DIR}/qml/Ryoku/Spatial3D/."
+	for so in "${ED}${qmldir}/Spatial3D"/*.so; do
+		[[ -f ${so} ]] && fperms 0755 "${qmldir}/Spatial3D/${so##*/}"
+	done
+
+	# Ryoku.Ryogami picker module (upstream drops the .qrc files it leaves behind).
+	rm -f "${PICKER_BUILD}"/qml/Ryoku/Ryogami/*.qrc || die
+	insinto "${qmldir}/Ryogami"
+	doins -r "${PICKER_BUILD}/qml/Ryoku/Ryogami/."
+	for so in "${ED}${qmldir}/Ryogami"/*.so; do
+		[[ -f ${so} ]] && fperms 0755 "${qmldir}/Ryogami/${so##*/}"
 	done
 
 	# Ryoku.Ui / FrameBars / PluginKit: pure QML+JS on the system import path
@@ -606,8 +637,8 @@ src_install() {
 
 	# --- 4. QML app assets, wallpapers, decor, lockscreen ----------------
 	insinto /usr/share/ryogami
-	doins -r "${S}/ryoku/shell/ryogami/wall-ui/."
-	domenu "${S}/ryoku/shell/ryogami/wall-ui/data/ryogami-wall.desktop"
+	doins "${S}/ryoku/shell/ryogami/picker/shell.qml"
+	domenu "${S}/ryoku/shell/ryogami/picker/data/ryogami.desktop"
 
 	insinto /usr/share/ryoku/ryodecors
 	doins -r "${S}/ryoku/assets/ryodecors/."
@@ -616,6 +647,21 @@ src_install() {
 
 	insinto /usr/share/ryoku/lockscreen/qylock
 	doins -r "${S}/ryoku/lockscreen/qylock/."
+
+	# Upstream vendors quickshell-lockscreen's QtGraphicalEffects imports as
+	# symlinks hardcoded to Arch's unsplit /usr/lib; relink them onto this
+	# system's actual libdir (/usr/lib64 here) or the lockscreen QML fails to
+	# resolve them at runtime.
+	local effects_dir="${ED}/usr/share/ryoku/lockscreen/qylock/quickshell-lockscreen/imports/QtGraphicalEffects"
+	local link target name
+	if [[ -d ${effects_dir} ]]; then
+		while IFS= read -r -d '' link; do
+			target="$(readlink "${link}")"
+			name="${target##*/Qt5Compat/GraphicalEffects/}"
+			ln -sfn "/usr/$(get_libdir)/qt6/qml/Qt5Compat/GraphicalEffects/${name}" "${link}" || die
+		done < <(find "${effects_dir}" -xtype l -print0)
+	fi
+
 	exeinto /usr/share/ryoku/lockscreen
 	doexe "${S}/ryoku/lockscreen/install-qylock"
 	if use sddm; then
@@ -732,8 +778,8 @@ src_install() {
 		"${S}/ryoku/shell/systemd/user/ryoku-shell.service" \
 		"${S}/ryoku/shell/systemd/user/ryogami.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-eq.service" \
-		"${S}/ryoku/shell/systemd/user/ryoku-ai-usage.service" \
-		"${S}/ryoku/shell/systemd/user/ryoku-ai-usage.timer" \
+		"${S}/ryoku/rashin/systemd/ryoku-ai-usage.service" \
+		"${S}/ryoku/rashin/systemd/ryoku-ai-usage.timer" \
 		"${S}/ryoku/shell/systemd/user/ryoku-bootstrap.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-session.target" \
 		"${S}/ryoku/rashin/systemd/ryoku-rashin.service" \
