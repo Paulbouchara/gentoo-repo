@@ -450,6 +450,9 @@ src_compile() {
 	#    still offline. CGO_ENABLED=0 so the C toolchain is never invoked.
 	local go_bins=(
 		"ryoku/cli:ryoku:vendor"
+		# init-neutral host helper: hypr autostart runs `ryoku-host session start`
+		# (env handoff + shell start); without it nothing starts the shell at login.
+		"ryoku/cli/cmd/ryoku-host:ryoku-host:vendor"
 		"ryoku/shell/ipc:ryoku-shell:vendor"
 		"ryoku/hub/backend:ryoku-hub:vendor"
 		"ryoku/rashin/backend:ryoku-rashin:vendor"
@@ -489,7 +492,7 @@ src_install() {
 	local qmldir="/usr/$(get_libdir)/qt6/qml/Ryoku"
 
 	# --- 1. binaries -----------------------------------------------------------
-	dobin "${T}"/gobin/{ryoku,ryoku-shell,ryoku-hub,ryoku-rashin,ryogami,ryovm-fetch,ryovm-mon,ryossh,ryostore,ryoku-wm-hyprland,ryoku-palette-bridge}
+	dobin "${T}"/gobin/{ryoku,ryoku-shell,ryoku-hub,ryoku-rashin,ryogami,ryovm-fetch,ryovm-mon,ryossh,ryostore,ryoku-wm-hyprland,ryoku-palette-bridge,ryoku-host}
 	newbin "${T}/ryoku-livewall" ryoku-livewall
 	# upstream ships these as separate =$pkgver packages; here they are aliases.
 	dosym ryoku-rashin /usr/bin/rashin
@@ -839,6 +842,7 @@ src_install() {
 		"${S}/ryoku/shell/systemd/user/ryoku-bootstrap.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-session.target" \
 		"${S}/ryoku/rashin/systemd/ryoku-rashin.service" \
+		"${S}/ryoku/rashin/systemd/ryoku-prowl.service" \
 		"${S}/system/hardware/bluetooth/ryoku-bluetooth-reset.service"
 
 	# --- 8. /etc/ryoku-release -------------------------------
