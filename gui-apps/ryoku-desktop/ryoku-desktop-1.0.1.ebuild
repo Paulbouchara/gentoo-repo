@@ -298,12 +298,29 @@ name); x11-themes/bibata-xcursors covers the configured Bibata-Modern-Ice
 pointer.
 
 Not packaged, so the matching feature is unavailable: hyprland-preview-share-picker
-(screen-share source picker), the Hyprland compositor plugins the Hub Plugins
-page toggles (keysounds/hyprbars/hyprfocus/dynamic-cursors/hyprglass/imgborders),
-gpu-screen-recorder (Super+U falls back to the shipped wf-recorder), and the
+(screen-share source picker), gpu-screen-recorder (Super+U falls back to the shipped wf-recorder), and the
 mpv-mpris script (the '@' live-radio now-playing widget will not follow
 playback). Arch-only boot bits (Limine hooks, the mkinitcpio GPU-trim hook) are
 intentionally dropped.
+
+Hyprland plugins (Settings > Plugins > Rebuild: keysounds, hyprbars, hyprfocus,
+dynamic-cursors, hyprglass, imgborders, hyprgrass...) are compiled on your machine
+against the installed Hyprland, so they must be rebuilt after every Hyprland
+update. On Gentoo the build needs two things the headers do not declare:
+Hyprland 0.56 headers include lua.h (under /usr/include/lua5.4), and hyprgrass
+looks up the pkg-config name lua, which Gentoo calls lua5.4. Copy
+/usr/lib64/pkgconfig/lua5.4.pc to ~/.local/lib/pkgconfig/lua.pc (Name: lua), then
+create ~/.config/systemd/user/ryoku-shell.service.d/lua-headers.conf with:
+
+  [Service]
+  Environment=C_INCLUDE_PATH=/usr/include/lua5.4
+  Environment=CPLUS_INCLUDE_PATH=/usr/include/lua5.4
+  Environment=PKG_CONFIG_PATH=%h/.local/lib/pkgconfig
+
+and run systemctl --user daemon-reload, then restart ryoku-shell. The keysounds
+source ships under /usr/share/ryoku/hypr-plugins so it builds without a checkout.
+Compiling a plugin does not enable it: hyprglass crashed Hyprland 0.56.2 with a
+SIGILL on the author's machine, so enable plugins one at a time.
 
 Upstream's environment.d/ryoku-session.conf is NOT installed. The systemd user
 manager would hand it to every session, KDE Plasma included, where its
@@ -484,6 +501,11 @@ src_install() {
 	newbin "${S}/ryoku/palette-bridge/remove-integrations.sh" ryoku-palette-bridge-remove-integrations
 	insinto /usr/share/ryoku/palette-bridge
 	doins -r "${S}/ryoku/palette-bridge/."
+
+	# keysounds plugin recipe, so the Hub can rebuild it for a newer Hyprland on a
+	# box with no checkout (the other plugins are cloned at rebuild time).
+	insinto /usr/share/ryoku/hypr-plugins/keysounds
+	doins "${S}"/ryoku/hyprland/plugins/keysounds/{main.cpp,Makefile,hyprpm.toml,README.md}
 	fperms 0755 /usr/share/ryoku/palette-bridge/install.sh \
 		/usr/share/ryoku/palette-bridge/install-integrations.sh \
 		/usr/share/ryoku/palette-bridge/doctor.sh \
