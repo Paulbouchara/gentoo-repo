@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>23699781+Paulbouchara@users.noreply.github.com</email>
+		<name>Paul Bouchara</name>
+	</maintainer>
+	<longdescription lang="en">
+		GlazePKG (gpk) is a terminal dashboard that unifies the system's package
+		managers in one searchable view. Ryoku's desktop depends on it.
+	</longdescription>
+	<upstream>
+		<remote-id type="github">neur0map/glazepkg</remote-id>
+	</upstream>
+</pkgmetadata>
