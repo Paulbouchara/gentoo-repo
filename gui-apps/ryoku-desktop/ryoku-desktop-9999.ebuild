@@ -65,6 +65,8 @@ RDEPEND="
 	${PYTHON_DEPS}
 	gui-wm/hyprland
 	gui-apps/quickshell
+	app-admin/gpk
+	gui-apps/skwd-paper-bin
 	x11-base/xwayland
 	dev-qt/qtbase:6[wayland,opengl,gui,widgets]
 	dev-qt/qtdeclarative:6[opengl,svg,widgets]
