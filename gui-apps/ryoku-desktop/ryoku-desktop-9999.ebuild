@@ -637,6 +637,21 @@ src_install() {
 
 	insinto /usr/share/ryoku/lockscreen/qylock
 	doins -r "${S}/ryoku/lockscreen/qylock/."
+
+	# Upstream vendors quickshell-lockscreen's QtGraphicalEffects imports as
+	# symlinks hardcoded to Arch's unsplit /usr/lib; relink them onto this
+	# system's actual libdir (/usr/lib64 here) or the lockscreen QML fails to
+	# resolve them at runtime.
+	local effects_dir="${ED}/usr/share/ryoku/lockscreen/qylock/quickshell-lockscreen/imports/QtGraphicalEffects"
+	local link target name
+	if [[ -d ${effects_dir} ]]; then
+		while IFS= read -r -d '' link; do
+			target="$(readlink "${link}")"
+			name="${target##*/Qt5Compat/GraphicalEffects/}"
+			ln -sfn "/usr/$(get_libdir)/qt6/qml/Qt5Compat/GraphicalEffects/${name}" "${link}" || die
+		done < <(find "${effects_dir}" -xtype l -print0)
+	fi
+
 	exeinto /usr/share/ryoku/lockscreen
 	doexe "${S}/ryoku/lockscreen/install-qylock"
 	if use sddm; then
