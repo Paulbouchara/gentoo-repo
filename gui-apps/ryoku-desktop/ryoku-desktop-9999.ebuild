@@ -661,6 +661,11 @@ src_install() {
 
 	insinto /usr/share/ryoku/lockscreen/qylock
 	doins -r "${S}/ryoku/lockscreen/qylock/."
+	# doins flattens modes to 0644; ryoku-qylock-activate refuses to stage the
+	# lockscreen unless these helpers are executable (the shell unit's
+	# ExecStartPre then fails and the shell never starts).
+	fperms 0755 \
+		/usr/share/ryoku/lockscreen/qylock/quickshell-lockscreen/{lock.sh,unlock.sh,proof.sh,ryoku-qylock-unlock-prepare}
 
 	# Upstream vendors quickshell-lockscreen's QtGraphicalEffects imports as
 	# symlinks hardcoded to Arch's unsplit /usr/lib; relink them onto this
