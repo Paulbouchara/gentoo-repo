@@ -454,7 +454,7 @@ src_install() {
 	# ~/.cache/*-usage.json they refresh.
 	local b
 	for b in claude-usage codex-usage opencode-usage; do
-		dobin "${S}/ryoku/shell/bin/${b}"
+		dobin "${S}/ryoku/rashin/usage/${b}"
 	done
 
 	# ryoku-shell package helpers: every leaf script the bar, launcher, Hub,
