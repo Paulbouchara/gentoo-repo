@@ -183,6 +183,7 @@ DEPEND="
 	dev-qt/qtdeclarative:6
 	dev-qt/qtmultimedia:6
 	dev-qt/qtshadertools:6
+	dev-util/vulkan-headers
 	media-video/ffmpeg:=
 "
 
@@ -205,6 +206,8 @@ RESTRICT+=" test"
 
 # The Blobs QML module - one package-level tree, not per-phase locals.
 CMAKE_USE_DIR="${S}/ryoku/shell/plugin"
+# The Ryoku.Ryogami picker is a second CMake project, built out of tree here.
+PICKER_BUILD="${WORKDIR}/picker_build"
 
 # Keep the numbered steps and command blocks verbatim in the README.
 DISABLE_AUTOFORMATTING=1
@@ -369,6 +372,16 @@ src_compile() {
 	#    the component is LTO-neutral).
 	cmake_src_compile
 
+	# 1b. Ryoku.Ryogami - the wallpaper picker (C++ GPU card renderer + Qt
+	#     Quick UI), same shape as Blobs. Upstream's picker/build.sh runs
+	#     cmake+ninja the same way; the daemon spawns it through quickshell.
+	(
+		CMAKE_USE_DIR="${S}/ryoku/shell/ryogami/picker"
+		BUILD_DIR="${PICKER_BUILD}"
+		cmake_src_configure
+		cmake_src_compile
+	) || die "ryogami picker build failed"
+
 	# 2. livewall - C11 / Wayland video-wallpaper daemon (installed as
 	#    ryoku-livewall, symlinked ryogami-live). wlr-layer-shell references
 	#    xdg-shell interfaces at the C level, so all three protocols are
@@ -497,6 +510,14 @@ src_install() {
 		[[ -f ${so} ]] && fperms 0755 "${qmldir}/Blobs/${so##*/}"
 	done
 
+	# Ryoku.Ryogami picker module (upstream drops the .qrc files it leaves behind).
+	rm -f "${PICKER_BUILD}"/qml/Ryoku/Ryogami/*.qrc || die
+	insinto "${qmldir}/Ryogami"
+	doins -r "${PICKER_BUILD}/qml/Ryoku/Ryogami/."
+	for so in "${ED}${qmldir}/Ryogami"/*.so; do
+		[[ -f ${so} ]] && fperms 0755 "${qmldir}/Ryogami/${so##*/}"
+	done
+
 	# Ryoku.Ui / FrameBars / PluginKit: pure QML+JS on the system import path
 	# (Quickshell sandboxes relative imports to the config root, so they cannot
 	# live inside one root). Prune authoring-time helpers from the source tree
@@ -606,8 +627,8 @@ src_install() {
 
 	# --- 4. QML app assets, wallpapers, decor, lockscreen ----------------
 	insinto /usr/share/ryogami
-	doins -r "${S}/ryoku/shell/ryogami/wall-ui/."
-	domenu "${S}/ryoku/shell/ryogami/wall-ui/data/ryogami-wall.desktop"
+	doins "${S}/ryoku/shell/ryogami/picker/shell.qml"
+	domenu "${S}/ryoku/shell/ryogami/picker/data/ryogami.desktop"
 
 	insinto /usr/share/ryoku/ryodecors
 	doins -r "${S}/ryoku/assets/ryodecors/."
@@ -732,8 +753,8 @@ src_install() {
 		"${S}/ryoku/shell/systemd/user/ryoku-shell.service" \
 		"${S}/ryoku/shell/systemd/user/ryogami.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-eq.service" \
-		"${S}/ryoku/shell/systemd/user/ryoku-ai-usage.service" \
-		"${S}/ryoku/shell/systemd/user/ryoku-ai-usage.timer" \
+		"${S}/ryoku/rashin/systemd/ryoku-ai-usage.service" \
+		"${S}/ryoku/rashin/systemd/ryoku-ai-usage.timer" \
 		"${S}/ryoku/shell/systemd/user/ryoku-bootstrap.service" \
 		"${S}/ryoku/shell/systemd/user/ryoku-session.target" \
 		"${S}/ryoku/rashin/systemd/ryoku-rashin.service" \
