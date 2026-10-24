@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>23699781+Paulbouchara@users.noreply.github.com</email>
+		<name>Paul Bouchara</name>
+	</maintainer>
+	<longdescription lang="en">
+		skwd-paper renders still, video and Wallpaper Engine wallpapers for
+		Ryoku's Ryogami wallpaper daemon. This package unpacks the upstream
+		prebuilt release (FFmpeg bundled privately), pinned as Ryoku pins it.
+	</longdescription>
+	<upstream>
+		<remote-id type="github">liixini/skwd-wall</remote-id>
+	</upstream>
+</pkgmetadata>
