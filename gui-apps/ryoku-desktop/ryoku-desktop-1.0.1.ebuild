@@ -309,6 +309,18 @@ Upstream's environment.d/ryoku-session.conf is NOT installed. The systemd user
 manager would hand it to every session, KDE Plasma included, where its
 QT_QPA_PLATFORMTHEME=qt6ct and fixed PATH break the Plasma theme and Gentoo's
 PATH. Hyprland sets the same variables itself from hypr/modules/env.lua.
+
+Qt and KDE apps come out in a LIGHT theme under Hyprland if env.lua's
+QT_QPA_PLATFORMTHEME=qt6ct has no plugin behind it: gui-apps/qt6ct is blocked by
+kde-plasma/plasma-meta, so it cannot be installed next to Plasma. The 'kde'
+platform theme (plasma-integration, already there with Plasma) reads the
+~/.config/kdeglobals the Ryoku daemon keeps in sync. Put this in your
+~/.config/hypr/user.lua (loaded last, never touched by updates):
+
+  hl.env('QT_QPA_PLATFORMTHEME', 'kde')
+
+Then restart ryoku-shell and any open KDE apps. Without Plasma installed,
+emerge gui-apps/qt6ct instead and leave env.lua alone.
 "
 
 src_unpack() {
