@@ -25,7 +25,7 @@ RDEPEND="
 	>=dev-python/httpx-0.26[${PYTHON_USEDEP}]
 	<dev-python/pydantic-3[${PYTHON_USEDEP}]
 	>=dev-python/pydantic-1.10[${PYTHON_USEDEP}]
-	>=dev-python/pyjwt-2.10.1[${PYTHON_USEDEP}]
+	>=dev-python/pyjwt-2.12.0[${PYTHON_USEDEP}]
 	dev-python/typing-extensions[${PYTHON_USEDEP}]
 "
 
