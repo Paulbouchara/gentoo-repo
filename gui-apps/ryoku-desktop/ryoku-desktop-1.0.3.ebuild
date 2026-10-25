@@ -50,7 +50,7 @@ LICENSE="GPL-3+ BSD MIT ISC OFL-1.1"
 SLOT="0"
 
 IUSE="+bluetooth gaming kwallet nautilus nvidia +ocr plasma-integration plymouth"
-IUSE+=" +power-profiles sddm security-keys vm zsh"
+IUSE+=" equalizer +power-profiles sddm security-keys vm zsh"
 
 # All Go modules build fully offline (vendored trees or zero external deps +
 # GOPROXY=off), so network-sandbox is a cheap backstop against a proxy hit.
@@ -67,6 +67,11 @@ RDEPEND="
 	gui-apps/quickshell
 	app-admin/gpk
 	gui-apps/skwd-paper-bin
+	equalizer? (
+		media-sound/easyeffects
+		media-libs/lsp-plugins[lv2]
+		media-plugins/calf
+	)
 	x11-base/xwayland
 	dev-qt/qtbase:6[wayland,opengl,gui,widgets]
 	dev-qt/qtdeclarative:6[opengl,svg,widgets]
