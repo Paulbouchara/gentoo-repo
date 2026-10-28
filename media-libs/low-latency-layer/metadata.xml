@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE pkgmetadata SYSTEM "https://www.gentoo.org/dtd/metadata.dtd">
+<pkgmetadata>
+	<maintainer type="person">
+		<email>23699781+Paulbouchara@users.noreply.github.com</email>
+		<name>Paul Bouchara</name>
+	</maintainer>
+	<longdescription>
+		Vulkan layer that reduces input latency on AMD and Intel GPUs by
+		implementing VK_AMD_anti_lag and, with LOW_LATENCY_LAYER_REFLEX=1,
+		VK_NV_low_latency2. Opt-in: set LOW_LATENCY_LAYER=1.
+	</longdescription>
+	<upstream>
+		<remote-id type="github">Korthos-Software/low_latency_layer</remote-id>
+	</upstream>
+</pkgmetadata>
