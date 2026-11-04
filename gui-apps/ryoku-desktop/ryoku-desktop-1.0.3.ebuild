@@ -626,6 +626,23 @@ src_install() {
 	insinto "${cfg}/quickshell/ryostore"
 	doins -r "${S}/ryoku/apps/ryostore/quickshell/."
 
+	# doins flattens to 0644 here too: restore +x on every shell script (and
+	# any other file) that is executable in the source, for all four quickshell
+	# trees. Without it the bar's click handlers (qs_manager.sh ...) fail with
+	# "permission denied" after `ryoku materialize` copies them.
+	local _qs _src _dst _f
+	for _qs in \
+		"ryoku/shell/quickshell:${cfg}/quickshell" \
+		"ryoku/hub/quickshell:${cfg}/quickshell/hub" \
+		"ryoku/apps/ryovm/quickshell:${cfg}/quickshell/ryovm" \
+		"ryoku/apps/ryostore/quickshell:${cfg}/quickshell/ryostore"; do
+		_src="${S}/${_qs%%:*}"
+		_dst="${_qs#*:}"
+		while IFS= read -r -d '' _f; do
+			fperms 0755 "${_dst}/${_f#"${_src}"/}"
+		done < <(find "${_src}" -type f -executable -print0)
+	done
+
 	insinto "${cfg}/matugen"
 	doins -r "${S}/ryoku/shell/matugen/."
 
